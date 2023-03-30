@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{c7693d38-5437-44cc-bc50-57b2114c3104}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\live\groupsock\GroupEId.cpp" />
+    <ClCompile Include="..\..\live\groupsock\Groupsock.cpp" />
+    <ClCompile Include="..\..\live\groupsock\GroupsockHelper.cpp" />
+    <ClCompile Include="..\..\live\groupsock\inet.c" />
+    <ClCompile Include="..\..\live\groupsock\IOHandlers.cpp" />
+    <ClCompile Include="..\..\live\groupsock\NetAddress.cpp" />
+    <ClCompile Include="..\..\live\groupsock\NetInterface.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\live\groupsock\include\GroupEId.hh">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\live\groupsock\include\Groupsock.hh">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\live\groupsock\include\groupsock_version.hh">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\live\groupsock\include\GroupsockHelper.hh">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\live\groupsock\include\IOHandlers.hh">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\live\groupsock\include\NetAddress.hh">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\live\groupsock\include\NetCommon.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\live\groupsock\include\NetInterface.hh">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
