@@ -66,7 +66,8 @@ char eventLoopWatchVariable = 0;
 int main(int argc, char** argv) {
 #if 1
     argc = 2;
-    argv[1] = (char*)"rtsp://admin:!QAZants@192.168.140.66:80/profile2/media.smp";
+    //argv[1] = (char*)"rtsp://admin:!QAZants@192.168.140.66:80/profile2/media.smp";
+    argv[1] = (char*)"rtsp://127.0.0.1:80/h264ESVideoTest";
 #endif
   // Begin by setting up our usage environment:
   TaskScheduler* scheduler = BasicTaskScheduler::createNew();

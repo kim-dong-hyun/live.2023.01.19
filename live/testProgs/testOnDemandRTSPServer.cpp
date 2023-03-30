@@ -23,6 +23,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "BasicUsageEnvironment.hh"
 #include "announceURL.hh"
 
+//#define SERVER_USE_TLS
+
 UsageEnvironment* env;
 
 // To make the second and subsequent client for each stream reuse the same
@@ -72,7 +74,8 @@ int main(int argc, char** argv) {
   RTSPServer* rtspServer = RTSPServer::createNew(*env, 322, authDB);
 #else
   // Serve regular RTSP (over a TCP connection):
-  RTSPServer* rtspServer = RTSPServer::createNew(*env, 8554, authDB);
+  //RTSPServer* rtspServer = RTSPServer::createNew(*env, 8554, authDB);
+  RTSPServer* rtspServer = RTSPServer::createNew(*env, 554, authDB);
 #endif
   if (rtspServer == NULL) {
     *env << "Failed to create RTSP server: " << env->getResultMsg() << "\n";
@@ -82,8 +85,12 @@ int main(int argc, char** argv) {
 #ifndef STREAM_USING_SRTP
 #define STREAM_USING_SRTP True
 #endif
+#if 0
   rtspServer->setTLSState(PATHNAME_TO_CERTIFICATE_FILE, PATHNAME_TO_PRIVATE_KEY_FILE,
 			  STREAM_USING_SRTP);
+#else
+  rtspServer->setTLSState("rootCA.key", "private.pem", False);
+#endif
 #endif
 
   char const* descriptionString

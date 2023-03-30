@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{3eeb0b55-c750-4645-9c2e-c3b7a8461154}</ProjectGuid>
-    <RootNamespace>testRTSPClient</RootNamespace>
+    <ProjectGuid>{47c3f2f6-b234-4a5b-adb4-b127c9197375}</ProjectGuid>
+    <RootNamespace>testOnDemandRTSPServer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -73,11 +73,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>false</SDLCheck>
+      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\..\live\BasicUsageEnvironment\include;..\..\..\live\liveMedia\include;..\..\..\live\groupsock\include;..\..\..\live\UsageEnvironment\include;..\..\..\OpenSSL_x86\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,7 +133,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\live\testProgs\testRTSPClient.cpp" />
+    <ClCompile Include="..\..\..\live\testProgs\announceURL.cpp" />
+    <ClCompile Include="..\..\..\live\testProgs\testOnDemandRTSPServer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\live\testProgs\announceURL.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
