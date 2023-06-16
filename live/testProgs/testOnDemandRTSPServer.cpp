@@ -85,11 +85,11 @@ int main(int argc, char** argv) {
 #ifndef STREAM_USING_SRTP
 #define STREAM_USING_SRTP True
 #endif
-#if 0
+#if 0   //--- kimdh
   rtspServer->setTLSState(PATHNAME_TO_CERTIFICATE_FILE, PATHNAME_TO_PRIVATE_KEY_FILE,
 			  STREAM_USING_SRTP);
 #else
-  rtspServer->setTLSState("rootCA.key", "private.pem", False);
+  rtspServer->setTLSState("lesstif.com.crt", "lesstif.com.key", False);
 #endif
 #endif
 

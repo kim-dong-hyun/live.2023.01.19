@@ -830,12 +830,16 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
 
       // If the request specified the wrong type of URL
       // (i.e., "rtsps" instead of "rtsp", or vice versa), then send back a 'redirect':
+#if 1   //--- kimdh
       if (urlIsRTSPS != fOurRTSPServer.fOurConnectionsUseTLS) {
 #ifdef DEBUG
 	fprintf(stderr, "Calling handleCmd_redirect()\n");
 #endif
 	handleCmd_redirect(urlSuffix);
       } else if (strcmp(cmdName, "OPTIONS") == 0) {
+#else
+      if (strcmp(cmdName, "OPTIONS") == 0) {
+#endif
 	// If the "OPTIONS" command included a "Session:" id for a session that doesn't exist,
 	// then treat this as an error:
 	if (requestIncludedSessionId && clientSession == NULL) {

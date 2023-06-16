@@ -276,12 +276,18 @@ Boolean RTSPClient::parseRTSPURL(char const* url,
 		portNumBits defaultPortNumber;
 		char const* from;
 		if (_strncasecmp(url, rtspPrefix, rtspPrefixLength) == 0) {
+#if 1	//--- kimdh
 			defaultPortNumber = 554;
+#else
+			fTLS.isNeeded = True;
+			defaultPortNumber = 443;
+#endif
 			from = &url[rtspPrefixLength];
 		}
 		else if (_strncasecmp(url, rtspsPrefix, rtspsPrefixLength) == 0) {
 			fTLS.isNeeded = True;
-			defaultPortNumber = 322;
+			//defaultPortNumber = 322;
+			defaultPortNumber = 443;	//--- kimdh
 			from = &url[rtspsPrefixLength];
 		}
 		else {
