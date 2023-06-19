@@ -627,9 +627,6 @@
     <ClInclude Include="..\..\..\live\groupsock\include\Groupsock.hh">
       <Filter>groupsock\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\live\groupsock\include\groupsock_version.hh">
-      <Filter>groupsock\include</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\live\groupsock\include\GroupsockHelper.hh">
       <Filter>groupsock\include</Filter>
     </ClInclude>

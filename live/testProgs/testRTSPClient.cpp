@@ -66,8 +66,9 @@ char eventLoopWatchVariable = 0;
 int main(int argc, char** argv) {
 #if 1	//--- kimdh
 	argc = 2;
-	//argv[1] = (char*)"rtsp://admin:!QAZants@192.168.140.66:80/profile2/media.smp";
+	//argv[1] = (char*)"rtsp://admin:!QAZants@192.168.140.66/profile2/media.smp";
 	argv[1] = (char*)"rtsp://127.0.0.1/h264ESVideoTest";
+	//argv[1] = (char*)"rtsps://127.0.0.1/h264ESVideoTest";
 #endif
   // Begin by setting up our usage environment:
 	TaskScheduler* scheduler = BasicTaskScheduler::createNew();
@@ -178,9 +179,10 @@ void openURL(UsageEnvironment& env, char const* progName, char const* rtspURL) {
 	// to receive (even if more than stream uses the same "rtsp://" URL).
 #if 0	//--- kimdh
 	RTSPClient* rtspClient = ourRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName);
-#else
+#else	
 	RTSPClient* rtspClient = ourRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName, 8000);
 	//RTSPClient* rtspClient = ourRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName, 443);
+	//RTSPClient* rtspClient = ourRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName, 80);	
 #endif
 	if (rtspClient == NULL) {
 		env << "Failed to create a RTSP client for URL \"" << rtspURL << "\": " << env.getResultMsg() << "\n";

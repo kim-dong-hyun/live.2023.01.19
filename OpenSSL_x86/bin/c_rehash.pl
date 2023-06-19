@@ -12,7 +12,7 @@
 # Perl c_rehash script, scan all files in a directory
 # and add symbolic links to their hash values.
 
-my $dir = "c:\\openssl32";
+my $dir = "";
 my $prefix = "";
 
 my $errorcount = 0;

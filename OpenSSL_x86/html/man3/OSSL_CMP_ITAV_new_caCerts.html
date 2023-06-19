@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>OSSL_CMP_ITAV_new_caCerts</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#NOTES">NOTES</a></li>
+  <li><a href="#RETURN-VALUES">RETURN VALUES</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#HISTORY">HISTORY</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>OSSL_CMP_ITAV_new_caCerts, OSSL_CMP_ITAV_get0_caCerts - CMP utility functions for handling specific genm and genp messages</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code> #include &lt;openssl/cmp.h&gt;
+
+ OSSL_CMP_ITAV *OSSL_CMP_ITAV_new_caCerts(const STACK_OF(X509) *caCerts);
+ int OSSL_CMP_ITAV_get0_caCerts(const OSSL_CMP_ITAV *itav, STACK_OF(X509) **out);</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>ITAV is short for InfoTypeAndValue.</p>
+
+<p>OSSL_CMP_ITAV_new_caCerts() creates an <b>OSSL_CMP_ITAV</b> structure of type <b>caCerts</b> and fills it with a copy of the provided list of certificates. The <i>caCerts</i> argument may be NULL or contain any number of certificates.</p>
+
+<p>OSSL_CMP_ITAV_get0_caCerts() requires that <i>itav</i> has type <b>caCerts</b>. It assigns NULL to <i>*out</i> if there are no CA certificates in <i>itav</i>, otherwise the internal pointer of type <b>STACK_OF(X509)</b> with the certificates present.</p>
+
+<h1 id="NOTES">NOTES</h1>
+
+<p>CMP is defined in RFC 4210.</p>
+
+<h1 id="RETURN-VALUES">RETURN VALUES</h1>
+
+<p>OSSL_CMP_ITAV_new_caCerts() returns a pointer to the new ITAV structure on success, or NULL on error.</p>
+
+<p>OSSL_CMP_ITAV_get0_caCerts() returns 1 on success, 0 on error.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p><a href="../man3/OSSL_CMP_ITAV_create.html">OSSL_CMP_ITAV_create(3)</a> and <a href="../man3/OSSL_CMP_ITAV_get0_type.html">OSSL_CMP_ITAV_get0_type(3)</a></p>
+
+<h1 id="HISTORY">HISTORY</h1>
+
+<p>OSSL_CMP_ITAV_new_caCerts() and OSSL_CMP_ITAV_get0_rootCaCert() were added in OpenSSL 3.2.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright 2022 The OpenSSL Project Authors. All Rights Reserved.</p>
+
+<p>Licensed under the Apache License 2.0 (the &quot;License&quot;). You may not use this file except in compliance with the License. You can obtain a copy in the file LICENSE in the source distribution or at <a href="https://www.openssl.org/source/license.html">https://www.openssl.org/source/license.html</a>.</p>
+
+
+</body>
+
+</html>
+
+
