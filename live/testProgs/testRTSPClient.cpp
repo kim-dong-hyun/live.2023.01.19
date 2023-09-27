@@ -23,6 +23,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
 
+FILE* fpStream = NULL;
+
 // Forward function definitions:
 
 // RTSP 'response handlers':
@@ -64,13 +66,19 @@ void usage(UsageEnvironment& env, char const* progName) {
 char eventLoopWatchVariable = 0;
 
 int main(int argc, char** argv) {
-#if 1	//--- kimdh
+#if 0	//--- kimdh
 	argc = 2;
 	//argv[1] = (char*)"rtsp://admin:!QAZants@192.168.140.66/profile2/media.smp";
-	argv[1] = (char*)"rtsp://127.0.0.1/h264ESVideoTest";
+	//argv[1] = (char*)"rtsp://192.168.140.66/profile2/media.smp";
+	//argv[1] = (char*)"rtsp://127.0.0.1/h264ESVideoTest";
 	//argv[1] = (char*)"rtsps://127.0.0.1/h264ESVideoTest";
-#endif
-  // Begin by setting up our usage environment:
+	//argv[1] = (char*)"rtsp://127.0.0.1/mpeg2TransportStreamTest";
+	//argv[1] = (char*)"rtsps://root:2323@192.168.142.134/video1";
+	argv[1] = (char*)"rtsp://root:2323@192.168.142.134/video1";
+#endif	
+	//fpStream = fopen("test.264", "wb+");	//--- kimdh
+
+	// Begin by setting up our usage environment:
 	TaskScheduler* scheduler = BasicTaskScheduler::createNew();
 	UsageEnvironment* env = BasicUsageEnvironment::createNew(*scheduler);
 
@@ -177,10 +185,10 @@ static unsigned rtspClientCount = 0; // Counts how many streams (i.e., "RTSPClie
 void openURL(UsageEnvironment& env, char const* progName, char const* rtspURL) {
 	// Begin by creating a "RTSPClient" object.  Note that there is a separate "RTSPClient" object for each stream that we wish
 	// to receive (even if more than stream uses the same "rtsp://" URL).
-#if 0	//--- kimdh
+#if 1	//--- kimdh
 	RTSPClient* rtspClient = ourRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName);
 #else	
-	RTSPClient* rtspClient = ourRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName, 8000);
+	//RTSPClient* rtspClient = ourRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName, 8000);
 	//RTSPClient* rtspClient = ourRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName, 443);
 	//RTSPClient* rtspClient = ourRTSPClient::createNew(env, rtspURL, RTSP_CLIENT_VERBOSITY_LEVEL, progName, 80);	
 #endif
@@ -538,6 +546,12 @@ void DummySink::afterGettingFrame(unsigned frameSize, unsigned numTruncatedBytes
 #endif
 	envir() << "\n";
 #endif
+	//--- kimdh
+	if (fpStream) {
+		const char nalHeader[4] = {0x00, 0x00, 0x00, 0x01};
+		fwrite(nalHeader, sizeof(nalHeader), 1, fpStream);
+		fwrite(fReceiveBuffer, frameSize, 1, fpStream);
+	}
 
 	// Then continue, to request the next frame of data:
 	continuePlaying();

@@ -264,7 +264,8 @@ int main(int argc, char** argv) {
       = ServerMediaSession::createNew(*env, streamName, streamName,
 				      descriptionString);
     sms->addSubsession(MPEG2TransportFileServerMediaSubsession
-		       ::createNew(*env, inputFileName, indexFileName, reuseFirstSource));
+		       //::createNew(*env, inputFileName, indexFileName, reuseFirstSource));
+               ::createNew(*env, inputFileName, indexFileName, True));  //--- kimdh
     rtspServer->addServerMediaSession(sms);
 
     announceStream(rtspServer, sms, streamName, inputFileName);

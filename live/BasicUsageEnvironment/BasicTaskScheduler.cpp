@@ -231,9 +231,12 @@ void BasicTaskScheduler
     if (socketNum+1 > fMaxNumSockets) {
       fMaxNumSockets = socketNum+1;
     }
-    if (conditionSet&SOCKET_READABLE) FD_SET((unsigned)socketNum, &fReadSet);
-    if (conditionSet&SOCKET_WRITABLE) FD_SET((unsigned)socketNum, &fWriteSet);
-    if (conditionSet&SOCKET_EXCEPTION) FD_SET((unsigned)socketNum, &fExceptionSet);
+    if (conditionSet&SOCKET_READABLE) 
+        FD_SET((unsigned)socketNum, &fReadSet);
+    if (conditionSet&SOCKET_WRITABLE) 
+        FD_SET((unsigned)socketNum, &fWriteSet);
+    if (conditionSet&SOCKET_EXCEPTION) 
+        FD_SET((unsigned)socketNum, &fExceptionSet);
   }
 }
 

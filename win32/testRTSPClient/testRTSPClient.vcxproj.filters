@@ -630,18 +630,6 @@
     <ClInclude Include="..\..\..\live\groupsock\include\GroupsockHelper.hh">
       <Filter>groupsock\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\live\groupsock\include\IOHandlers.hh">
-      <Filter>groupsock\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\live\groupsock\include\NetAddress.hh">
-      <Filter>groupsock\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\live\groupsock\include\NetCommon.h">
-      <Filter>groupsock\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\live\groupsock\include\NetInterface.hh">
-      <Filter>groupsock\include</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\live\BasicUsageEnvironment\include\BasicHashTable.hh">
       <Filter>BasicUsageEnvironment\include</Filter>
     </ClInclude>
@@ -660,16 +648,7 @@
     <ClInclude Include="..\..\live\BasicUsageEnvironment\include\HandlerSet.hh">
       <Filter>BasicUsageEnvironment\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\live\groupsock\include\GroupEId.hh">
-      <Filter>groupsock\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\live\groupsock\include\Groupsock.hh">
-      <Filter>groupsock\include</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\live\groupsock\include\groupsock_version.hh">
-      <Filter>groupsock\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\live\groupsock\include\GroupsockHelper.hh">
       <Filter>groupsock\include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\live\groupsock\include\IOHandlers.hh">
