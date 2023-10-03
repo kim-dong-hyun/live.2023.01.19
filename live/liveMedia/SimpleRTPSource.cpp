@@ -25,44 +25,44 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 SimpleRTPSource*
 SimpleRTPSource::createNew(UsageEnvironment& env,
-			   Groupsock* RTPgs,
-			   unsigned char rtpPayloadFormat,
-			   unsigned rtpTimestampFrequency,
-			   char const* mimeTypeString,
-			   unsigned offset, Boolean doNormalMBitRule) {
-  return new SimpleRTPSource(env, RTPgs, rtpPayloadFormat,
-			     rtpTimestampFrequency,
-			     mimeTypeString, offset, doNormalMBitRule);
+	Groupsock* RTPgs,
+	unsigned char rtpPayloadFormat,
+	unsigned rtpTimestampFrequency,
+	char const* mimeTypeString,
+	unsigned offset, Boolean doNormalMBitRule) {
+	return new SimpleRTPSource(env, RTPgs, rtpPayloadFormat,
+		rtpTimestampFrequency,
+		mimeTypeString, offset, doNormalMBitRule);
 }
 
 SimpleRTPSource
 ::SimpleRTPSource(UsageEnvironment& env, Groupsock* RTPgs,
-		  unsigned char rtpPayloadFormat,
-		  unsigned rtpTimestampFrequency,
-		  char const* mimeTypeString,
-		  unsigned offset, Boolean doNormalMBitRule)
-  : MultiFramedRTPSource(env, RTPgs,
-			 rtpPayloadFormat, rtpTimestampFrequency),
-    fMIMEtypeString(strDup(mimeTypeString)), fOffset(offset) {
-  fUseMBitForFrameEnd = doNormalMBitRule && strncmp(mimeTypeString, "audio/", 6) != 0;
+	unsigned char rtpPayloadFormat,
+	unsigned rtpTimestampFrequency,
+	char const* mimeTypeString,
+	unsigned offset, Boolean doNormalMBitRule)
+	: MultiFramedRTPSource(env, RTPgs,
+		rtpPayloadFormat, rtpTimestampFrequency),
+	fMIMEtypeString(strDup(mimeTypeString)), fOffset(offset) {
+	fUseMBitForFrameEnd = doNormalMBitRule && strncmp(mimeTypeString, "audio/", 6) != 0;
 }
 
 SimpleRTPSource::~SimpleRTPSource() {
-  delete[] (char*)fMIMEtypeString;
+	delete[](char*)fMIMEtypeString;
 }
 
 Boolean SimpleRTPSource
 ::processSpecialHeader(BufferedPacket* packet,
-		       unsigned& resultSpecialHeaderSize) {
-  fCurrentPacketCompletesFrame
-    = !fUseMBitForFrameEnd || packet->rtpMarkerBit();
+	unsigned& resultSpecialHeaderSize) {
+	fCurrentPacketCompletesFrame
+		= !fUseMBitForFrameEnd || packet->rtpMarkerBit();
 
-  resultSpecialHeaderSize = fOffset;
-  return True;
+	resultSpecialHeaderSize = fOffset;
+	return True;
 }
 
 char const* SimpleRTPSource::MIMEtype() const {
-  if (fMIMEtypeString == NULL) return MultiFramedRTPSource::MIMEtype();
+	if (fMIMEtypeString == NULL) return MultiFramedRTPSource::MIMEtype();
 
-  return fMIMEtypeString;
+	return fMIMEtypeString;
 }
