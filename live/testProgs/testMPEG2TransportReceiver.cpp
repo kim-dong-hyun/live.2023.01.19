@@ -23,6 +23,38 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "BasicUsageEnvironment.hh"
 
+#include <thread>
+#include <chrono>
+
+#ifdef WIN32
+#include <conio.h>
+#ifdef _DEBUG
+#include <crtdbg.h>
+#endif
+
+#define mygetch	getch
+
+#elif defined(LINUX)
+#include <stdint.h>
+#include <termios.h>
+#include <unistd.h>
+#include <signal.h>
+
+int mygetch(void)
+{
+	struct termios oldt,
+		newt;
+	int ch;
+	tcgetattr(STDIN_FILENO, &oldt);
+	newt = oldt;
+	newt.c_lflag &= ~(ICANON | ECHO);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+	ch = getchar();
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+	return ch;
+}
+#endif
+
 // To receive a "source-specific multicast" (SSM) stream, uncomment this:
 //#define USE_SSM 1
 
@@ -38,6 +70,115 @@ struct sessionState_t {
 
 UsageEnvironment* env;
 
+class DummySink : public MediaSink {
+public:
+	static DummySink* createNew(UsageEnvironment& env, unsigned bufferSize = 20000);
+
+	virtual void addData(unsigned char const* data, unsigned dataSize,
+		struct timeval presentationTime);
+protected:
+	DummySink(UsageEnvironment& env, unsigned bufferSize);
+	// called only by createNew()
+	virtual ~DummySink();
+
+protected: // redefined virtual functions:
+	virtual Boolean continuePlaying();
+
+protected:
+	static void afterGettingFrame(void* clientData, unsigned frameSize,
+		unsigned numTruncatedBytes,
+		struct timeval presentationTime,
+		unsigned durationInMicroseconds);
+	virtual void afterGettingFrame(unsigned frameSize,
+		unsigned numTruncatedBytes,
+		struct timeval presentationTime);
+
+	unsigned char* fBuffer;
+	unsigned fBufferSize;
+	struct timeval fPrevPresentationTime;
+	unsigned fSamePresentationTimeCounter;
+
+	FILE* fFile;
+};
+
+DummySink::DummySink(UsageEnvironment& env, unsigned bufferSize)
+	: MediaSink(env), fBufferSize(bufferSize), fSamePresentationTimeCounter(0), fFile(NULL) {
+	fBuffer = new unsigned char[bufferSize];
+	fPrevPresentationTime.tv_sec = ~0; fPrevPresentationTime.tv_usec = 0;
+	//fFile = fopen("test.264", "wb");
+}
+
+DummySink::~DummySink() {
+	if (fFile) fclose(fFile);
+	delete[] fBuffer;
+}
+
+DummySink* DummySink::createNew(UsageEnvironment& env, unsigned bufferSize) {
+	return new DummySink(env, bufferSize);
+}
+
+Boolean DummySink::continuePlaying() {
+	if (fSource == NULL) return False;
+
+	fSource->getNextFrame(fBuffer, fBufferSize,
+		afterGettingFrame, this,
+		onSourceClosure, this);
+
+	return True;
+}
+
+void DummySink::afterGettingFrame(void* clientData, unsigned frameSize,
+	unsigned numTruncatedBytes,
+	struct timeval presentationTime,
+	unsigned /*durationInMicroseconds*/) {
+	DummySink* sink = (DummySink*)clientData;
+	sink->afterGettingFrame(frameSize, numTruncatedBytes, presentationTime);
+}
+
+void DummySink::afterGettingFrame(unsigned frameSize,
+	unsigned numTruncatedBytes,
+	struct timeval presentationTime) {
+	if (numTruncatedBytes > 0) {
+		envir() << "DummySink::afterGettingFrame(): The input frame data was too large for our buffer size ("
+			<< fBufferSize << ").  "
+			<< numTruncatedBytes << " bytes of trailing data was dropped!  Correct this by increasing the \"bufferSize\" parameter in the \"createNew()\" call to at least "
+			<< fBufferSize + numTruncatedBytes << "\n";
+	}
+	addData(fBuffer, frameSize, presentationTime);
+#if 1
+	char uSecsStr[6 + 1]; // used to output the 'microseconds' part of the presentation time
+	sprintf(uSecsStr, "%06u", (unsigned)presentationTime.tv_usec);
+
+	envir() << "DummySink received " << frameSize << " bytes" 
+		<< "\tPresentation time: " << (int)presentationTime.tv_sec << "." << uSecsStr << "\n";
+#endif
+	if (fFile) fwrite(fBuffer, 1, frameSize, fFile);
+	// Then try getting the next frame:
+	continuePlaying();
+}
+
+void DummySink::addData(unsigned char const* data, unsigned dataSize,
+	struct timeval presentationTime) {
+	// Write to our file:
+#ifdef TEST_LOSS
+	static unsigned const framesPerPacket = 10;
+	static unsigned const frameCount = 0;
+	static Boolean const packetIsLost;
+	if ((frameCount++) % framesPerPacket == 0) {
+		packetIsLost = (our_random() % 10 == 0); // simulate 10% packet loss #####
+	}
+
+	if (!packetIsLost) {
+	}
+#endif
+}
+
+char schedulerRun = 0;
+void thread_scheduler()
+{
+	env->taskScheduler().doEventLoop(&schedulerRun);
+}
+
 int main(int argc, char** argv) {
 	// Begin by setting up our usage environment:
 	TaskScheduler* scheduler = BasicTaskScheduler::createNew();
@@ -45,7 +186,8 @@ int main(int argc, char** argv) {
 
 	// Create the data sink for 'stdout':
 	//sessionState.sink = FileSink::createNew(*env, "stdout");
-	sessionState.sink = FileSink::createNew(*env, "mp2ts.264");
+	//sessionState.sink = FileSink::createNew(*env, "mp2ts.264");
+	sessionState.sink = DummySink::createNew(*env);
 	// Note: The string "stdout" is handled as a special case.
 	// A real file name could have been used instead.
 
@@ -90,7 +232,7 @@ int main(int argc, char** argv) {
 #endif
 
 	// Create the data source: a "MPEG-2 TransportStream RTP source" (which uses a 'simple' RTP payload format):
-	sessionState.source = SimpleRTPSource::createNew(*env, &rtpGroupsock, 33, 90000, "video/MP2T", 0, False /*no 'M' bit*/);
+	sessionState.source = SimpleRTPSource::createNew(*env, &rtpGroupsock, 33, 90000, "video/MP2T", 0, False /*no 'M' bit*/);	
 
 	// Create (and start) a 'RTCP instance' for the RTP source:
 	const unsigned estimatedSessionBandwidth = 5000; // in kbps; for RTCP b/w share
@@ -107,12 +249,28 @@ int main(int argc, char** argv) {
 	// Finally, start receiving the multicast stream:
 	*env << "Beginning receiving multicast stream...\n";
 	sessionState.sink->startPlaying(*sessionState.source, afterPlaying, NULL);
-
+#if 0
 	env->taskScheduler().doEventLoop(); // does not return
+#else
+	std::thread thread(thread_scheduler);
 
+	char c = mygetch();
+	while (c != 'q') {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		c = mygetch();
+	}
+
+	//sessionState.source->stopGettingFrames();
+	//sessionState.sink->stopPlaying();
+
+	schedulerRun = 1;
+	thread.join();
+	
+	sessionState.source->stopGettingFrames();
+	sessionState.sink->stopPlaying();
+#endif
 	return 0; // only to prevent compiler warning
 }
-
 
 void afterPlaying(void* /*clientData*/) {
 	*env << "...done receiving\n";

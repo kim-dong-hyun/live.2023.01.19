@@ -26,6 +26,96 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "GroupsockHelper.hh"
 #include "OutputFile.hh"
 
+#if 1
+#define TS_PACKET_SIZE 188
+#define MAX_PIDS 8192
+
+unsigned char stream_types[MAX_PIDS] = { 0 };
+
+void parse_pat(unsigned char* packet) {
+	int section_length = ((packet[6] & 0x0F) << 8) | packet[7];
+	int current_byte = 8; // PAT starts after the pointer_field
+
+	while (current_byte < (section_length + 3 - 4)) {
+		unsigned short program_number = (packet[current_byte] << 8) | packet[current_byte + 1];
+		unsigned short pmt_pid = ((packet[current_byte + 2] & 0x1F) << 8) | packet[current_byte + 3];
+
+		if (program_number == 0) { // This is the PID for the NIT, not PMT.
+			current_byte += 4;
+			continue;
+		}
+
+		stream_types[pmt_pid] = 0x00;  // Use 0x00 to indicate PMT
+		current_byte += 4;
+	}
+}
+
+void parse_pmt(const unsigned char* packet) {
+	int section_length = ((packet[6] & 0x0F) << 8) | packet[7];
+	int program_info_length = ((packet[10] & 0x0F) << 8) | packet[11];
+	int current_byte = 12 + program_info_length;
+
+	while (current_byte < (section_length + 3 - 4)) {  // -4 for the CRC32 at the end
+		unsigned char stream_type = packet[current_byte];
+		unsigned short elementary_pid = ((packet[current_byte + 1] & 0x1F) << 8) | packet[current_byte + 2];
+		stream_types[elementary_pid] = stream_type;
+		int es_info_length = ((packet[current_byte + 3] & 0x0F) << 8) | packet[current_byte + 4];
+		current_byte += 5 + es_info_length;
+	}
+}
+
+void parse_pes(unsigned char* packet) {
+	if (packet[0] == 0x00 && packet[1] == 0x00 && packet[2] == 0x01) {
+		unsigned char stream_id = packet[3];
+		printf("PES with stream ID: 0x%02x\n", stream_id);
+	}
+}
+
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+
+const int ts_packet_size = 188;
+
+// MPEG-2 TS 패킷 헤더 구조체
+struct mpeg2ts_packet_header {
+	uint8_t sync_byte;
+	uint8_t transport_error_indicator;
+	uint8_t payload_unit_start_indicator;
+	uint8_t transport_priority;
+	uint16_t pid;
+	uint8_t transport_scrambling_control;
+	uint8_t adaptation_field_control;
+	uint8_t continuity_counter;
+	// adaptation_field_control 비트가 1인 경우
+	struct adaptation_field {
+		uint8_t adaptation_field_length;
+		// 0x01: PES header
+		uint8_t adaptation_field_data[1];
+	} adaptation_field;
+	// payload
+	uint8_t payload[ts_packet_size - 24];
+};
+
+int analyze_ts_packet(struct mpeg2ts_packet_header* p) {
+	// PID가 비디오 또는 오디오인 경우
+	if (p->pid >= 0x0000 && p->pid <= 0x001F) {
+		printf("video\n");
+		return 0;
+	}
+	else if (p->pid >= 0x0080 && p->pid <= 0x00BF) {
+		printf("audio\n");
+		return 1;
+	}
+	else {
+		printf("other\n");
+		return 2;
+	}
+}
+
+unsigned char buffer_ts[1024 * 10];
+int buffer_ts_index = 0;
+#endif
+
 ////////// FileSink //////////
 
 FileSink::FileSink(UsageEnvironment& env, FILE* fid, unsigned bufferSize,
@@ -123,7 +213,57 @@ void FileSink::addData(unsigned char const* data, unsigned dataSize,
 	if (!packetIsLost)
 #endif
 		if (fOutFid != NULL && data != NULL) {
+#if 1
 			fwrite(data, 1, dataSize, fOutFid);
+#else
+			memcpy(&buffer_ts[buffer_ts_index], data, dataSize);
+			buffer_ts_index += dataSize;
+
+			while (buffer_ts_index >= TS_PACKET_SIZE) {
+				//printf("start : %02x\n", buffer_ts[0]);
+				//for (int i = 0; i < 20; i++) printf("%02x ", buffer_ts[i]);
+				//printf("\n");
+#if 0
+				struct mpeg2ts_packet_header* p = (struct mpeg2ts_packet_header*)buffer_ts;
+				int ret = analyze_ts_packet(p);
+				//if (ret != 1) 
+					fwrite(buffer_ts, 1, TS_PACKET_SIZE, fOutFid);
+#else
+				fwrite(buffer_ts, 1, TS_PACKET_SIZE, fOutFid);
+
+				//unsigned short pid = ((buffer_ts[1] & 0x1F) << 8) | buffer_ts[2];
+				unsigned short pid = ((buffer_ts[4] & 0x1F) << 8) | buffer_ts[5];
+				if (pid == 0x0000) {  // PAT, we just find PMT PID here
+					//unsigned short pmt_pid = ((buffer_ts[13] & 0x1F) << 8) | buffer_ts[14];
+					//stream_types[pmt_pid] = 0x00;  // PAT
+					parse_pat(buffer_ts);
+				}
+				else if (stream_types[pid] == 0x00) {  // PMT
+					parse_pmt(buffer_ts);
+				}
+				else {
+					//parse_pes(buffer_ts + 4);  // Typically, PES starts after 4 bytes into the TS payload
+
+					switch (stream_types[pid]) {
+					case 0x02:
+					case 0x1B:
+						printf("Video packet with PID: %d, stream type: %02x\n", pid, stream_types[pid]);
+						break;
+					case 0x03:
+					case 0x04:
+					case 0x0F:
+						printf("Audio packet with PID: %d, stream_type: %02x\n", pid, stream_types[pid]);
+						break;
+					default:
+						break;
+					}
+					//printf("PID : %d, stream_type : %d(%02x)\n", pid, stream_types[pid], stream_types[pid]);
+				}
+#endif
+				memcpy(buffer_ts, &buffer_ts[TS_PACKET_SIZE], buffer_ts_index - TS_PACKET_SIZE);
+				buffer_ts_index -= TS_PACKET_SIZE;
+			}
+#endif
 		}
 }
 

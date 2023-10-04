@@ -53,11 +53,13 @@ int main(int argc, char** argv) {
 #ifdef USE_SSM
     = "232.255.42.42";
 #else
-    = "239.255.42.42";
+    //= "239.255.42.42";
+    = "230.0.5.1";
   // Note: If the session is unicast rather than multicast,
   // then replace this string with "0.0.0.0"
 #endif
-  const unsigned short rtpPortNum = 8888;
+  //const unsigned short rtpPortNum = 8888;
+  const unsigned short rtpPortNum = 50010;
   const unsigned short rtcpPortNum = rtpPortNum+1;
 #ifndef USE_SSM
   const unsigned char ttl = 1; // low, in case routers don't admin scope
