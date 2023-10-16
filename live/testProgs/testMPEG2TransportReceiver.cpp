@@ -105,7 +105,7 @@ DummySink::DummySink(UsageEnvironment& env, unsigned bufferSize)
 	: MediaSink(env), fBufferSize(bufferSize), fSamePresentationTimeCounter(0), fFile(NULL) {
 	fBuffer = new unsigned char[bufferSize];
 	fPrevPresentationTime.tv_sec = ~0; fPrevPresentationTime.tv_usec = 0;
-	//fFile = fopen("test.264", "wb");
+	fFile = fopen("test.264", "wb");
 }
 
 DummySink::~DummySink() {
@@ -173,13 +173,10 @@ void DummySink::addData(unsigned char const* data, unsigned dataSize,
 #endif
 }
 
-char schedulerRun = 0;
-void thread_scheduler()
-{
-	env->taskScheduler().doEventLoop(&schedulerRun);
-}
-
 int main(int argc, char** argv) {
+#ifdef _DEBUG
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);// | _CRTDBG_CHECK_ALWAYS_DF);
+#endif
 	// Begin by setting up our usage environment:
 	TaskScheduler* scheduler = BasicTaskScheduler::createNew();
 	env = BasicUsageEnvironment::createNew(*scheduler);
@@ -198,11 +195,13 @@ int main(int argc, char** argv) {
 #else
 		//= "239.255.42.42";
 		= "230.0.5.1";
+		//= "234.1.2.1";
 	// Note: If the session is unicast rather than multicast,
 	// then replace this string with "0.0.0.0"
 #endif
-  //const unsigned short rtpPortNum = 1234;
+	//const unsigned short rtpPortNum = 1234;
 	const unsigned short rtpPortNum = 50010;
+	//const unsigned short rtpPortNum = 5500;
 	const unsigned short rtcpPortNum = rtpPortNum + 1;
 #ifndef USE_SSM
 	const unsigned char ttl = 1; // low, in case routers don't admin scope
@@ -252,7 +251,12 @@ int main(int argc, char** argv) {
 #if 0
 	env->taskScheduler().doEventLoop(); // does not return
 #else
-	std::thread thread(thread_scheduler);
+	char schedulerNotRun = 0;
+	std::thread thread(
+		[&schedulerNotRun]()
+		{
+			env->taskScheduler().doEventLoop(&schedulerNotRun);
+		});
 
 	char c = mygetch();
 	while (c != 'q') {
@@ -263,11 +267,16 @@ int main(int argc, char** argv) {
 	//sessionState.source->stopGettingFrames();
 	//sessionState.sink->stopPlaying();
 
-	schedulerRun = 1;
+	schedulerNotRun = 1;
 	thread.join();
 	
 	sessionState.source->stopGettingFrames();
 	sessionState.sink->stopPlaying();
+
+	afterPlaying(NULL);
+
+	delete scheduler;
+	env->reclaim();
 #endif
 	return 0; // only to prevent compiler warning
 }
