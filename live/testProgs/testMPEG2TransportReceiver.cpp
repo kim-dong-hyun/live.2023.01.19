@@ -152,7 +152,11 @@ void DummySink::afterGettingFrame(unsigned frameSize,
 	envir() << "DummySink received " << frameSize << " bytes" 
 		<< "\tPresentation time: " << (int)presentationTime.tv_sec << "." << uSecsStr << "\n";
 #endif
-	if (fFile) fwrite(fBuffer, 1, frameSize, fFile);
+	if (fFile) {
+		const char nalHeader[4] = { 0x00, 0x00, 0x00, 0x01 };
+		fwrite(nalHeader, sizeof(nalHeader), 1, fFile);
+		fwrite(fBuffer, 1, frameSize, fFile);
+	}
 	// Then try getting the next frame:
 	continuePlaying();
 }
