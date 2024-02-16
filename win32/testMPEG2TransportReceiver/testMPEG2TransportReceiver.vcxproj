@@ -136,7 +136,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;NO_GETIFADDRS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\live\BasicUsageEnvironment\include;..\..\live\liveMedia\include;..\..\live\groupsock\include;..\..\live\UsageEnvironment\include;..\..\OpenSSL_x64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\live\BasicUsageEnvironment\include;..\..\live\liveMedia\include;..\..\live\liveMedia;..\..\live\groupsock\include;..\..\live\UsageEnvironment\include;..\..\OpenSSL_x64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -637,6 +637,7 @@ BufferedPacket* ReorderingPacketBuffer
 		timeThresholdHasBeenExceeded = uSecondsSinceReceived > fThresholdTime;
 	}
 	if (timeThresholdHasBeenExceeded) {
+		fprintf(stderr, "PACKET LOSS : %d\n", fNextExpectedSeqNo);
 		fNextExpectedSeqNo = fHeadPacket->rtpSeqNo();
 		// we've given up on earlier packets now
 		packetLossPreceded = True;

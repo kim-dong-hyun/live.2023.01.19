@@ -66,7 +66,7 @@ void usage(UsageEnvironment& env, char const* progName) {
 char eventLoopWatchVariable = 0;
 
 int main(int argc, char** argv) {
-#if 0	//--- kimdh
+#if 1	//--- kimdh
 	argc = 2;
 	//argv[1] = (char*)"rtsp://admin:!QAZants@192.168.140.66/profile2/media.smp";
 	//argv[1] = (char*)"rtsp://192.168.140.66/profile2/media.smp";
@@ -74,9 +74,9 @@ int main(int argc, char** argv) {
 	//argv[1] = (char*)"rtsps://127.0.0.1/h264ESVideoTest";
 	//argv[1] = (char*)"rtsp://127.0.0.1/mpeg2TransportStreamTest";
 	//argv[1] = (char*)"rtsps://root:2323@192.168.142.134/video1";
-	argv[1] = (char*)"rtsp://root:2323@192.168.142.134/video1";
+	argv[1] = (char*)"rtsp://root:2323@192.168.143.12/video1";
 #endif	
-	//fpStream = fopen("test.264", "wb+");	//--- kimdh
+	fpStream = fopen("test.265", "wb+");	//--- kimdh
 
 	// Begin by setting up our usage environment:
 	TaskScheduler* scheduler = BasicTaskScheduler::createNew();

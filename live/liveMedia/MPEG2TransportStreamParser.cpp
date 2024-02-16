@@ -30,7 +30,7 @@ MPEG2TransportStreamParser
 	: StreamParser(inputSource, onEndFunc, onEndClientData, continueParsing, this),
 	fInputSource(inputSource), fAmCurrentlyParsing(False),
 	fOnEndFunc(onEndFunc), fOnEndClientData(onEndClientData),
-	fLastSeenPCR(0.0) {
+	fLastSeenPCR(0.0), fFileVideo(NULL), fFileAudio(NULL), fLastVideoPTS(0) {
 	if (StreamTypes[0x01].dataType == StreamType::UNKNOWN) { // initialize array with known values
 		StreamTypes[0x01] = StreamType("MPEG-1 video", StreamType::VIDEO, ".mpv");
 		StreamTypes[0x02] = StreamType("MPEG-2 video", StreamType::VIDEO, ".mpv");
@@ -55,6 +55,10 @@ MPEG2TransportStreamParser
 	// Initially, the only PID we know is 0x0000: a Program Association Table:
 	fPIDState[0x0000] = new PIDState_PAT(*this, 0x0000);
 
+	//--- kimdh
+	fFileVideo = fopen("video.264", "wb");
+	fFileAudio = fopen("audio.aac", "wb");
+
 	// Begin parsing:
 	continueParsing();
 }
@@ -62,6 +66,15 @@ MPEG2TransportStreamParser
 MPEG2TransportStreamParser::~MPEG2TransportStreamParser() {
 	for (unsigned i = 0; i < NUM_PIDS; ++i) delete fPIDState[i];
 	delete[] fPIDState;
+
+	if (fFileVideo) {
+		fclose(fFileVideo);
+		fFileVideo = NULL;
+	}
+	if (fFileAudio) {
+		fclose(fFileAudio);
+		fFileAudio = NULL;
+	}
 }
 
 UsageEnvironment& MPEG2TransportStreamParser::envir() {
@@ -104,6 +117,7 @@ Boolean MPEG2TransportStreamParser::parse() {
 		while (1) {
 			// Make sure we start with a 'sync byte':
 			do {
+				if (!checkBank()) return False;
 				saveParserState();
 			} while (get1Byte() != TRANSPORT_SYNC_BYTE);
 

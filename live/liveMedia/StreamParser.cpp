@@ -55,6 +55,31 @@ StreamParser::~StreamParser() {
 	delete[] fBank[0]; delete[] fBank[1];
 }
 
+void StreamParser::storeBufferData(unsigned char* buffer, unsigned numBytes) {
+	if (fCurParserIndex + numBytes > BANK_SIZE) {
+		// Swap banks, but save any still-needed bytes from the old bank:
+		unsigned numBytesToSave = fTotNumValidBytes - fSavedParserIndex;
+		unsigned char const* from = &curBank()[fSavedParserIndex];
+
+		fCurBankNum = (fCurBankNum + 1) % 2;
+		fCurBank = fBank[fCurBankNum];
+		memmove(curBank(), from, numBytesToSave);
+		fCurParserIndex = fCurParserIndex - fSavedParserIndex;
+		fSavedParserIndex = 0;
+		fTotNumValidBytes = numBytesToSave;
+	}
+
+	memcpy(&curBank()[fTotNumValidBytes], buffer, numBytes);
+	fTotNumValidBytes += numBytes;
+}
+
+Boolean StreamParser::checkBank() {
+	if (fCurParserIndex >= fTotNumValidBytes) {
+		return False;
+	}
+	return True;
+}	
+
 void StreamParser::saveParserState() {
 	fSavedParserIndex = fCurParserIndex;
 	fSavedRemainingUnparsedBits = fRemainingUnparsedBits;

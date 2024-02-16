@@ -29,6 +29,8 @@ class StreamParser {
 public:
 	virtual void flushInput();
 
+	void storeBufferData(unsigned char* buffer, unsigned numBytes);	//--- kimdh
+
 protected: // we're a virtual base class
 	typedef void (clientContinueFunc)(void* clientData,
 		unsigned char* ptr, unsigned size,
@@ -112,9 +114,13 @@ protected: // we're a virtual base class
 
 	unsigned bankSize() const;
 
+	Boolean checkBank();	//--- kimdh
+
+	unsigned char* nextToParse() { return &curBank()[fCurParserIndex]; }
+
 private:
 	unsigned char* curBank() { return fCurBank; }
-	unsigned char* nextToParse() { return &curBank()[fCurParserIndex]; }
+	//unsigned char* nextToParse() { return &curBank()[fCurParserIndex]; }
 	unsigned char* lastParsed() { return &curBank()[fCurParserIndex - 1]; }
 
 	// makes sure that at least "numBytes" valid bytes remain:
@@ -161,7 +167,7 @@ private:
 	// Whether we have seen EOF on the input source:
 	Boolean fHaveSeenEOF;
 
-	struct timeval fLastSeenPresentationTime; // hack used for EOF handling
+	struct timeval fLastSeenPresentationTime; // hack used for EOF handling	
 };
 
 #endif

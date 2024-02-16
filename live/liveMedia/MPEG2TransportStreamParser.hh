@@ -29,7 +29,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #ifndef _MEDIA_SINK_HH
 #include "MediaSink.hh"
 #endif
-
+//--- kimdh
+//#define DEBUG_CONTENTS
+//#define DEBUG_ERRORS
 // A descriptor that describes the state of each known PID:
 enum PIDType { PAT, PMT, STREAM };
 
@@ -127,6 +129,11 @@ private:
 	void* fOnEndClientData;
 	PIDState** fPIDState;
 	double fLastSeenPCR;
+
+	//--- kimdh
+	FILE*	fFileVideo;
+	FILE*	fFileAudio;
+	double	fLastVideoPTS;
 };
 
 #endif

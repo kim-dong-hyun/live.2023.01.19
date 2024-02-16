@@ -22,14 +22,17 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "FileSink.hh"
 #include <time.h> // for time_t
 
+//#define STREAM_SOURCE_USE	1
+
 Boolean MPEG2TransportStreamParser
 ::processStreamPacket(PIDState_STREAM* pidState, Boolean pusi, unsigned numDataBytes) {
-#ifdef DEBUG_CONTENTS
 	extern StreamType StreamTypes[];
+#ifdef DEBUG_CONTENTS	
 	fprintf(stderr, "\t%s stream (stream_type 0x%02x)\n",
 		StreamTypes[pidState->stream_type].description, pidState->stream_type);
 #endif
 	do {
+#if STREAM_SOURCE_USE
 		MPEG2TransportStreamDemuxedTrack* streamSource = pidState->streamSource;
 		if (streamSource == NULL) {
 			// There's no source for this track; just skip the data:
@@ -41,7 +44,7 @@ Boolean MPEG2TransportStreamParser
 			// Wait until the source next gets read from.  (The parsing will continue then.)
 			return False;
 		}
-
+#endif
 		// If the data begins with a PES header, parse it first
 		unsigned pesHeaderSize = 0;
 		if (pusi && pidState->stream_type != 0x05/*these special private streams don't have PES hdrs*/) {
@@ -51,6 +54,7 @@ Boolean MPEG2TransportStreamParser
 
 		// Deliver the data:
 		unsigned numBytesToDeliver = numDataBytes - pesHeaderSize;
+#if STREAM_SOURCE_USE
 		if (numBytesToDeliver > streamSource->maxSize()) {
 			streamSource->frameSize() = streamSource->maxSize();
 			streamSource->numTruncatedBytes() = numBytesToDeliver - streamSource->maxSize();
@@ -59,14 +63,51 @@ Boolean MPEG2TransportStreamParser
 			streamSource->frameSize() = numBytesToDeliver;
 			streamSource->numTruncatedBytes() = 0;
 		}
+#endif
+		//--- kimdh
+#if STREAM_SOURCE_USE
+		unsigned char* buffer = streamSource->to();
+		unsigned int bufferSize = streamSource->frameSize() - streamSource->numTruncatedBytes();
+#else
+		unsigned char* buffer = nextToParse();
+		unsigned int bufferSize = numBytesToDeliver;
+#endif
+#if STREAM_SOURCE_USE
 		getBytes(streamSource->to(), streamSource->frameSize());
 		skipBytes(streamSource->numTruncatedBytes());
-
+#else
+		skipBytes(bufferSize);
+#endif
 		double pts = pidState->lastSeenPTS == 0.0 ? fLastSeenPCR : pidState->lastSeenPTS;
+#if STREAM_SOURCE_USE
 		streamSource->presentationTime().tv_sec = (time_t)pts;
 		streamSource->presentationTime().tv_usec = int(pts * 1000000.0) % 1000000;
-
+#endif
+#if 1	//--- kimdh
+		if (fFileVideo && StreamTypes[pidState->stream_type].dataType == StreamType::VIDEO) {
+			if (!strcmp(StreamTypes[pidState->stream_type].description, "H.264 video") ||
+				!strcmp(StreamTypes[pidState->stream_type].description, "H.265 video")) {
+				if (fLastVideoPTS == 0.0 || pts != fLastVideoPTS) {
+					// Write NAL header (0x00000001)
+					const char nalHeader[4] = { 0x00, 0x00, 0x00, 0x01 };
+					fwrite(nalHeader, sizeof(nalHeader), 1, fFileVideo);
+				}
+			}
+			fwrite(buffer, 1, bufferSize, fFileVideo);			
+			//fprintf(stderr, "PTS: %.10f, %.10f\n", pts, pts-fLastVideoPTS);
+			fLastVideoPTS = pts;
+#if STREAM_SOURCE_USE
+			fPrevPresentationTime.tv_sec = streamSource->presentationTime().tv_sec;
+			fPrevPresentationTime.tv_usec = streamSource->presentationTime().tv_usec;
+#endif
+		}
+		else if (fFileAudio && StreamTypes[pidState->stream_type].dataType == StreamType::AUDIO) {
+			fwrite(buffer, 1, bufferSize, fFileAudio);
+		}
+#endif
+#if STREAM_SOURCE_USE
 		FramedSource::afterGetting(streamSource); // completes delivery
+#endif
 	} while (0);
 
 	return True;
@@ -302,7 +343,9 @@ PIDState_STREAM::PIDState_STREAM(MPEG2TransportStreamParser& parser,
 		program_number, pid, st.filenameSuffix);
 	fprintf(stderr, "Creating new output file \"%s\"\n", fileName);
 	streamSink = FileSink::createNew(parser.envir(), fileName);
+#if STREAM_SOURCE_USE
 	streamSink->startPlaying(*streamSource, NULL, NULL);
+#endif
 }
 
 PIDState_STREAM::~PIDState_STREAM() {

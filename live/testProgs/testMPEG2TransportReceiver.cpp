@@ -23,6 +23,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "BasicUsageEnvironment.hh"
 
+#include "MPEG2TransportStreamParser.hh"
+
 #include <thread>
 #include <chrono>
 
@@ -66,6 +68,7 @@ struct sessionState_t {
 	RTPSource* source;
 	MediaSink* sink;
 	RTCPInstance* rtcpInstance;
+	MPEG2TransportStreamParser* parser;
 } sessionState;
 
 UsageEnvironment* env;
@@ -105,7 +108,7 @@ DummySink::DummySink(UsageEnvironment& env, unsigned bufferSize)
 	: MediaSink(env), fBufferSize(bufferSize), fSamePresentationTimeCounter(0), fFile(NULL) {
 	fBuffer = new unsigned char[bufferSize];
 	fPrevPresentationTime.tv_sec = ~0; fPrevPresentationTime.tv_usec = 0;
-	fFile = fopen("test.264", "wb");
+	//fFile = fopen("test.264", "wb");
 }
 
 DummySink::~DummySink() {
@@ -145,7 +148,7 @@ void DummySink::afterGettingFrame(unsigned frameSize,
 			<< fBufferSize + numTruncatedBytes << "\n";
 	}
 	addData(fBuffer, frameSize, presentationTime);
-#if 1
+#if 0
 	char uSecsStr[6 + 1]; // used to output the 'microseconds' part of the presentation time
 	sprintf(uSecsStr, "%06u", (unsigned)presentationTime.tv_usec);
 
@@ -157,6 +160,9 @@ void DummySink::afterGettingFrame(unsigned frameSize,
 		fwrite(nalHeader, sizeof(nalHeader), 1, fFile);
 		fwrite(fBuffer, 1, frameSize, fFile);
 	}
+	sessionState.parser->storeBufferData(fBuffer, frameSize);
+	sessionState.parser->continueParsing(sessionState.parser, fBuffer, frameSize, presentationTime);
+
 	// Then try getting the next frame:
 	continuePlaying();
 }
@@ -195,7 +201,8 @@ int main(int argc, char** argv) {
 	// Create 'groupsocks' for RTP and RTCP:
 	char const* sessionAddressStr
 #ifdef USE_SSM
-		= "232.255.42.42";
+		//= "232.255.42.42";
+		= "230.0.5.1";
 #else
 		//= "239.255.42.42";
 		= "230.0.5.1";
@@ -219,7 +226,8 @@ int main(int argc, char** argv) {
 	const Port rtcpPort(rtcpPortNum);
 
 #ifdef USE_SSM
-	char const* sourceAddressStr = "aaa.bbb.ccc.ddd";
+	//char const* sourceAddressStr = "aaa.bbb.ccc.ddd";
+	char const* sourceAddressStr = "192.168.140.38";
 	// replace this with the real source address
 	NetAddressList sourceFilterAddresses(sourceAddressStr);
 	struct sockaddr_storage sourceFilterAddress;
@@ -255,6 +263,8 @@ int main(int argc, char** argv) {
 #if 0
 	env->taskScheduler().doEventLoop(); // does not return
 #else
+	sessionState.parser = new MPEG2TransportStreamParser(sessionState.source, NULL, NULL);
+
 	char schedulerNotRun = 0;
 	std::thread thread(
 		[&schedulerNotRun]()
@@ -292,4 +302,5 @@ void afterPlaying(void* /*clientData*/) {
 	Medium::close(sessionState.rtcpInstance); // Note: Sends a RTCP BYE
 	Medium::close(sessionState.sink);
 	Medium::close(sessionState.source);
+	delete sessionState.parser;
 }
